@@ -3,7 +3,7 @@ Setting up [MySQL InnoDB Cluster](https://dev.mysql.com/doc/refman/8.0/en/mysql-
 
 The following tutorial steps will lead us to have a final result like this:
 
-IMAGE
+![alt text](https://github.com/wagnerjfr/mysql-innodb-cluster/blob/master/img/figure1.png)
 
 ## 1. Create the Docker network, launch the MySQL Containers and grant user access
 
@@ -100,7 +100,7 @@ Run the command below to access the MySQL Shell of **mysql1** container.
 ```
 $ docker exec -it mysql1 mysqlsh -uroot -proot -S/var/run/mysqld/mysqlx.sock
 ```
-****************IMAGE*************
+![alt text](https://github.com/wagnerjfr/mysql-innodb-cluster/blob/master/img/figure2.png)
 
 #### Is the MySQL instance ready for InnoDB Cluster?
 
@@ -704,6 +704,9 @@ Then, call the describe function:
 ```
 cluster.status()
 ```
+![alt text](https://github.com/wagnerjfr/mysql-innodb-cluster/blob/master/img/figure1.png)
 
-IMAGE
+## 7. Fault tolerance
+
+## 8. Clean up
 
