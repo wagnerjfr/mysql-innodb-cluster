@@ -96,7 +96,7 @@ mysql: [Warning] Using a password on the command line interface can be insecure.
 
 ## 2. Configure the MySQL servers to join InnoDB Cluster
 
-Run the command below to access the MySQL Shell of **mysql1** container.
+Run the command below to access the MySQL Shell of container **mysql1**.
 ```
 $ docker exec -it mysql1 mysqlsh -uroot -proot -S/var/run/mysqld/mysqlx.sock
 ```
@@ -169,7 +169,7 @@ NOTE: Please use the dba.configureInstance() command to repair these issues.
 ```
 You can see that **mysql1** needs to have some of its configuration changed.
 
-It not nocessary to run the commands below, but if you want to try, the same can be done and observed when running:
+It's not necessary to run the commands below, but if you want to try, the same can be done and observed when running:
 ```
 dba.checkInstanceConfiguration("inno@mysql2:3306")
 ```
@@ -486,7 +486,7 @@ Output:
 }
 ```
 
-Our InnoDb Cluster with four nodes is up and running.
+Our InnoDB Cluster with four nodes is up and running.
 
 Type `\exit` and press ENTER to leave the Shell and go to the OS terminal.
 
@@ -496,7 +496,7 @@ Next section we will bootstrap a MySQL Router which will help load balance the t
 
 We are going to launch a new [MySQL Router Docker image](https://hub.docker.com/r/mysql/mysql-router) as a container:
 ```
-docker run -d --name mysql-router --net=innodbnet \
+$ docker run -d --name mysql-router --net=innodbnet \
    -e MYSQL_HOST=mysql1 \
    -e MYSQL_PORT=3306 \
    -e MYSQL_USER=inno \
@@ -585,8 +585,8 @@ logging facility initialized, switching logging to loggers specified in configur
 ```
 That's it! Our InnoDB Cluster has now a MySQL Router too.
 
-Pay attention to this information, it will be used in the next section:
-```
+Pay attention to the information below. It will be used in the next section:
+```console
 ## MySQL Classic protocol
 
 - Read/Write Connections: localhost:6446
@@ -694,7 +694,7 @@ It seems to be working.. :+1:
 
 Let's connect again to the MySQL Shell through our client container using the router's host and port:
 ```
-$ docker exec -it mysql-client mysqlsh -h mysql-router -P 6446 -uinno -pinno
+$ docker exec -it mysql-client mysqlsh -h mysql-router -P 6447 -uinno -pinno
 ```
 Get the cluster we create before:
 ```
@@ -706,7 +706,191 @@ cluster.status()
 ```
 ![alt text](https://github.com/wagnerjfr/mysql-innodb-cluster/blob/master/img/figure1.png)
 
+Don not close this terminal. We will try the cluster's fault tolerance in the next section.
+
 ## 7. Fault tolerance
+
+We know from the figure of the last section that **mysql1** is the leader of the cluster.
+
+Let's stop the container and check what will happen to the cluster.
+
+Open a separate OS terminal and run:
+```
+$ docker stop mysql1
+```
+
+Go back to your MySQL Shell terminal and re-run:
+```
+cluster.status()
+```
+
+The cluster is still up and running, but we have a new "master", **mysql2**:
+```console
+ MySQL  mysql-router:6447 ssl  JS > cluster.status();
+{
+    "clusterName": "mycluster", 
+    "defaultReplicaSet": {
+        "name": "default", 
+        "primary": "mysql2:3306", 
+        "ssl": "REQUIRED", 
+        "status": "OK_PARTIAL", 
+        "statusText": "Cluster is ONLINE and can tolerate up to ONE failure. 1 member is not active", 
+        "topology": {
+            "mysql1:3306": {
+                "address": "mysql1:3306", 
+                "mode": "n/a", 
+                "readReplicas": {}, 
+                "role": "HA", 
+                "shellConnectError": "MySQL Error 2005 (HY000): Unknown MySQL server host 'mysql1' (0)", 
+                "status": "(MISSING)"
+            }, 
+            "mysql2:3306": {
+                "address": "mysql2:3306", 
+                "mode": "R/W", 
+                "readReplicas": {}, 
+                "role": "HA", 
+                "status": "ONLINE", 
+                "version": "8.0.17"
+            }, 
+            "mysql3:3306": {
+                "address": "mysql3:3306", 
+                "mode": "R/O", 
+                "readReplicas": {}, 
+                "role": "HA", 
+                "status": "ONLINE", 
+                "version": "8.0.17"
+            }, 
+            "mysql4:3306": {
+                "address": "mysql4:3306", 
+                "mode": "R/O", 
+                "readReplicas": {}, 
+                "role": "HA", 
+                "status": "ONLINE", 
+                "version": "8.0.17"
+            }
+        }, 
+        "topologyMode": "Single-Primary"
+    }, 
+    "groupInformationSourceMember": "mysql2:3306"
+}
+```
+
+Go back to the OS terminal and start **mysql1**:
+```
+$ docker start mysql1
+```
+
+Back to MySQL Shell terminal, run `cluster.status()`:
+
+If you are fast enough you notice that **mysql1** will start "recovering" in the cluster:
+```console
+ MySQL  mysql-router:6447 ssl  JS > cluster.status();
+{
+    "clusterName": "mycluster", 
+    "defaultReplicaSet": {
+        "name": "default", 
+        "primary": "mysql2:3306", 
+        "ssl": "REQUIRED", 
+        "status": "OK", 
+        "statusText": "Cluster is ONLINE and can tolerate up to ONE failure.", 
+        "topology": {
+            "mysql1:3306": {
+                "address": "mysql1:3306", 
+                "mode": "R/O", 
+                "readReplicas": {}, 
+                "recoveryStatusText": "Recovery in progress", 
+                "role": "HA", 
+                "status": "RECOVERING", 
+                "version": "8.0.17"
+            }, 
+            "mysql2:3306": {
+                "address": "mysql2:3306", 
+                "mode": "R/W", 
+                "readReplicas": {}, 
+                "role": "HA", 
+                "status": "ONLINE", 
+                "version": "8.0.17"
+            }, 
+            "mysql3:3306": {
+                "address": "mysql3:3306", 
+                "mode": "R/O", 
+                "readReplicas": {}, 
+                "role": "HA", 
+                "status": "ONLINE", 
+                "version": "8.0.17"
+            }, 
+            "mysql4:3306": {
+                "address": "mysql4:3306", 
+                "mode": "R/O", 
+                "readReplicas": {}, 
+                "role": "HA", 
+                "status": "ONLINE", 
+                "version": "8.0.17"
+            }
+        }, 
+        "topologyMode": "Single-Primary"
+    }, 
+    "groupInformationSourceMember": "mysql2:3306"
+}
+```
+And afer some seconds, it's back `ONLINE` again, but as a "slave" in "R/O" mode.
+```console
+ MySQL  mysql-router:6447 ssl  JS > cluster.status();
+{
+    "clusterName": "mycluster", 
+    "defaultReplicaSet": {
+        "name": "default", 
+        "primary": "mysql2:3306", 
+        "ssl": "REQUIRED", 
+        "status": "OK", 
+        "statusText": "Cluster is ONLINE and can tolerate up to ONE failure.", 
+        "topology": {
+            "mysql1:3306": {
+                "address": "mysql1:3306", 
+                "mode": "R/O", 
+                "readReplicas": {}, 
+                "role": "HA", 
+                "status": "ONLINE", 
+                "version": "8.0.17"
+            }, 
+            "mysql2:3306": {
+                "address": "mysql2:3306", 
+                "mode": "R/W", 
+                "readReplicas": {}, 
+                "role": "HA", 
+                "status": "ONLINE", 
+                "version": "8.0.17"
+            }, 
+            "mysql3:3306": {
+                "address": "mysql3:3306", 
+                "mode": "R/O", 
+                "readReplicas": {}, 
+                "role": "HA", 
+                "status": "ONLINE", 
+                "version": "8.0.17"
+            }, 
+            "mysql4:3306": {
+                "address": "mysql4:3306", 
+                "mode": "R/O", 
+                "readReplicas": {}, 
+                "role": "HA", 
+                "status": "ONLINE", 
+                "version": "8.0.17"
+            }
+        }, 
+        "topologyMode": "Single-Primary"
+    }, 
+    "groupInformationSourceMember": "mysql2:3306"
+}
+```
 
 ## 8. Clean up
 
+Stop the running containers:
+```
+docker stop mysql1 mysql2 mysql3 mysql4 mysql-router mysql-client
+```
+Remove the stopped containers:
+```
+docker rm mysql1 mysql2 mysql3 mysql4 mysql-router mysql-client
+```
