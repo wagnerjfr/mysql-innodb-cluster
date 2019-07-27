@@ -614,7 +614,7 @@ Run a query the check whether the data was inserted:
 $ docker exec -it mysql-client mysql -h mysql-router -P 6447 -uinno -pinno \
   -e "SELECT * FROM TEST.t1;"
 ```
-* Note 3: in the above query the router's R/O (Read/Only) port **6477** was used.
+* Note 3: in the above query the router's R/O (Read/Only) port **6447** was used.
 
 Output:
 ```console
@@ -724,7 +724,9 @@ Go back to your MySQL Shell terminal and re-run:
 cluster.status()
 ```
 
-The cluster is still up and running, but we have a new "master", **mysql2**:
+The cluster is still up and running, but we have a new "master", **mysql2**. **mysql1** is now with status `"(MISSING)"` and mode `"n/a"`.
+
+Console output:
 ```console
  MySQL  mysql-router:6447 ssl  JS > cluster.status();
 {
@@ -780,9 +782,9 @@ Go back to the OS terminal and start **mysql1**:
 $ docker start mysql1
 ```
 
-Back to MySQL Shell terminal, run `cluster.status()`:
+Finally, back to MySQL Shell terminal, run `cluster.status()`:
 
-If you are fast enough you notice that **mysql1** will start "recovering" in the cluster:
+If you are fast enough you notice that **mysql1** will start `"RECOVERING"` in the cluster:
 ```console
  MySQL  mysql-router:6447 ssl  JS > cluster.status();
 {
@@ -833,7 +835,7 @@ If you are fast enough you notice that **mysql1** will start "recovering" in the
     "groupInformationSourceMember": "mysql2:3306"
 }
 ```
-And afer some seconds, it's back `ONLINE` again, but as a "slave" in "R/O" mode.
+And afer some seconds, it's back `"ONLINE"` again, but as a "slave" in `"R/O"` mode.
 ```console
  MySQL  mysql-router:6447 ssl  JS > cluster.status();
 {
