@@ -1,7 +1,11 @@
 # mysql-innodb-cluster
-Setting up MySQL InnoDB Cluster (plus MySQL Router) just using Docker containers
+Setting up [MySQL InnoDB Cluster]() with MySQL Shell (plus [MySQL Router]()) using just Docker containers.
 
-## Create the Docker network, launch the MySQL Containers and grant user access
+The following tutorial steps will lead us to have a final result like this:
+
+********** IMAGE *************
+
+## 1. Create the Docker network, launch the MySQL Containers and grant user access
 
 #### Create a Docker network
 `$ docker network create innodbnet`
@@ -89,13 +93,13 @@ mysql: [Warning] Using a password on the command line interface can be insecure.
 +------+
 ```
 
-## Configure the MySQL servers to join InnoDB Cluster
+## 2. Configure the MySQL servers to join InnoDB Cluster
 
 Run the command below to access the MySQL Shell of **mysql1** container.
 ```
 $ docker exec -it mysql1 mysqlsh -uroot -proot -S/var/run/mysqld/mysqlx.sock
 ```
-<image>
+****************IMAGE*************
 
 #### Is the MySQL instance ready for InnoDB Cluster?
 
@@ -239,7 +243,7 @@ In the OS terminal, restart the four MySQL 8 containers:
 $ docker restart mysql1 mysql2 mysql3 mysql4
 ```
 
-## Create a InnoDB Cluster with 4 MySQL servers
+## 3. Create the InnoDB Cluster
 
 Run the command below to access the MySQL Shell of **mysql1** container.
 ```
@@ -325,7 +329,7 @@ Output:
 ```
 Up to the clustes has just one node. In the next section we will add more three nodes.
 
-## Add the other MySQL servers to the InnoDB Cluster
+## 4. Add the other MySQL servers to the InnoDB Cluster
 
 MySQL server **mysql2**, **mysql3** and **mysql4** will be added to the cluster.
 
@@ -486,7 +490,7 @@ Type `\exit` and press ENTER to leave the Shell and go to the OS terminal.
 
 Next section we will bootstrap a MySQL Router which will help load balance the traffic to the cluster.
 
-## [MySQL Router](https://dev.mysql.com/doc/mysql-router/en/) Bootstrap
+## 5. [MySQL Router](https://dev.mysql.com/doc/mysql-router/en/) Bootstrap
 
 We are going to launch a new [MySQL Router Docker image](https://hub.docker.com/r/mysql/mysql-router) as a container:
 ```
