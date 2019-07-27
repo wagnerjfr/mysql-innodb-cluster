@@ -1,9 +1,9 @@
 # mysql-innodb-cluster
-Setting up [MySQL InnoDB Cluster]() with MySQL Shell (plus [MySQL Router]()) using just Docker containers.
+Setting up [MySQL InnoDB Cluster](https://dev.mysql.com/doc/refman/8.0/en/mysql-innodb-cluster-userguide.html) with [MySQL Shell](https://dev.mysql.com/doc/mysql-shell/8.0/en/) (plus [MySQL Router](https://dev.mysql.com/doc/mysql-router/8.0/en/)) using just Docker containers.
 
 The following tutorial steps will lead us to have a final result like this:
 
-********** IMAGE *************
+IMAGE
 
 ## 1. Create the Docker network, launch the MySQL Containers and grant user access
 
@@ -492,7 +492,7 @@ Type `\exit` and press ENTER to leave the Shell and go to the OS terminal.
 
 Next section we will bootstrap a MySQL Router which will help load balance the traffic to the cluster.
 
-## 5. [MySQL Router](https://dev.mysql.com/doc/mysql-router/en/) Bootstrap
+## 5. MySQL Router Bootstrap
 
 We are going to launch a new [MySQL Router Docker image](https://hub.docker.com/r/mysql/mysql-router) as a container:
 ```
@@ -583,5 +583,127 @@ logging facility initialized, switching logging to loggers specified in configur
 2019-07-27 10:20:11 routing INFO [7f9696c9a700] Routing routing:mycluster_default_ro listening on 6447 got request to disconnect invalid connections: metadata change
 2019-07-27 10:20:11 routing INFO [7f9696c9a700] Routing routing:mycluster_default_rw listening on 6446 got request to disconnect invalid connections: metadata change
 ```
-
 That's it! Our InnoDB Cluster has now a MySQL Router too.
+
+Pay attention to this information, it will be used in the next section:
+```
+## MySQL Classic protocol
+
+- Read/Write Connections: localhost:6446
+- Read/Only Connections:  localhost:6447
+```
+
+## 6. Add some data and check the replication
+
+First create a new MySQL 8 container named **mysql-client** which will server as a client:
+```
+$ docker run -d --name=mysql-client --hostname=mysql-client --net=innodbnet \
+   -e MYSQL_ROOT_PASSWORD=root mysql/mysql-server:8.0
+```
+When the container is `healthy`, run the command below to add some data to the cluster:
+```
+$ docker exec -it mysql-client mysql -h mysql-router -P 6446 -uinno -pinno \
+  -e "create database TEST; use TEST; CREATE TABLE t1 (id INT NOT NULL PRIMARY KEY) ENGINE=InnoDB; show tables;" \
+  -e "INSERT INTO TEST.t1 VALUES(1); INSERT INTO TEST.t1 VALUES(2); INSERT INTO TEST.t1 VALUES(3);"
+```
+* Note 1: ***mysql-client*** container is connecting to MySQL using the ***mysql-router*** container: `-h mysql-router -P 6446`.
+* Note 2: We need to use port **6446** because it's the R/W connection port.
+
+Run a query the check whether the data was inserted:
+```
+$ docker exec -it mysql-client mysql -h mysql-router -P 6447 -uinno -pinno \
+  -e "SELECT * FROM TEST.t1;"
+```
+* Note 3: in the above query the router's R/O (Read/Only) port **6477** was used.
+
+Output:
+```console
+mysql: [Warning] Using a password on the command line interface can be insecure.
++----+
+| id |
++----+
+|  1 |
+|  2 |
+|  3 |
++----+
+```
+Just to make sure that data is being replicated among the cluster's nodes, you can run the query in MySQL 8 servers containers directly:
+```
+for N in 1 2 3 4
+do docker exec -it mysql$N mysql -uinno -pinno \
+  -e "SHOW VARIABLES WHERE Variable_name = 'hostname';" \
+  -e "SELECT * FROM TEST.t1;"
+done
+```
+Expected output:
+```console
+mysql: [Warning] Using a password on the command line interface can be insecure.
++---------------+--------+
+| Variable_name | Value  |
++---------------+--------+
+| hostname      | mysql1 |
++---------------+--------+
++----+
+| id |
++----+
+|  1 |
+|  2 |
+|  3 |
++----+
+mysql: [Warning] Using a password on the command line interface can be insecure.
++---------------+--------+
+| Variable_name | Value  |
++---------------+--------+
+| hostname      | mysql2 |
++---------------+--------+
++----+
+| id |
++----+
+|  1 |
+|  2 |
+|  3 |
++----+
+mysql: [Warning] Using a password on the command line interface can be insecure.
++---------------+--------+
+| Variable_name | Value  |
++---------------+--------+
+| hostname      | mysql3 |
++---------------+--------+
++----+
+| id |
++----+
+|  1 |
+|  2 |
+|  3 |
++----+
+mysql: [Warning] Using a password on the command line interface can be insecure.
++---------------+--------+
+| Variable_name | Value  |
++---------------+--------+
+| hostname      | mysql4 |
++---------------+--------+
++----+
+| id |
++----+
+|  1 |
+|  2 |
+|  3 |
++----+
+```
+It seems to be working.. :+1:
+
+Let's connect again to the MySQL Shell through our client container using the router's host and port:
+```
+$ docker exec -it mysql-client mysqlsh -h mysql-router -P 6446 -uinno -pinno
+```
+Get the cluster we create before:
+```
+var cluster = dba.getCluster("mycluster")
+```
+Then, call the describe function:
+```
+cluster.status()
+```
+
+IMAGE
+
