@@ -13,7 +13,8 @@ The following tutorial steps will lead us to have a final result like this:
 #### Launch 4 MySQL 8 containers
 ```
 for N in 1 2 3 4
-  do docker run -d --rm --name=mysql$N --hostname=mysql$N --net=innodbnet -e MYSQL_ROOT_PASSWORD=root mysql/mysql-server:8.0
+  do docker run -d --name=mysql$N --hostname=mysql$N --net=innodbnet \
+      -e MYSQL_ROOT_PASSWORD=root mysql/mysql-server:8.0
 done
 ```
 Wait for them to be with `healthy` status
@@ -103,7 +104,7 @@ $ docker exec -it mysql1 mysqlsh -uroot -proot -S/var/run/mysqld/mysqlx.sock
 
 #### Is the MySQL instance ready for InnoDB Cluster?
 
-Let's verify that by running `dba.checkInstanceConfiguration()` wich will check the configuration of each instance.
+Let's verify that by running `dba.checkInstanceConfiguration()` which will check the configuration of each instance.
 
 Run the command below, following by typing the password `inno` to check configuration in **mysql1**:
 ```
@@ -168,7 +169,7 @@ NOTE: Please use the dba.configureInstance() command to repair these issues.
 ```
 You can see that **mysql1** needs to have some of its configuration changed.
 
-The same can be done and observed when running:
+It not nocessary to run the commands below, but if you want to try, the same can be done and observed when running:
 ```
 dba.checkInstanceConfiguration("inno@mysql2:3306")
 ```
@@ -242,6 +243,7 @@ In the OS terminal, restart the four MySQL 8 containers:
 ```
 $ docker restart mysql1 mysql2 mysql3 mysql4
 ```
+Wait for the four MySQL 8 containers to be with status `healthy` before continuing.
 
 ## 3. Create the InnoDB Cluster
 
@@ -327,7 +329,7 @@ Output:
     }
 }
 ```
-Up to the clustes has just one node. In the next section we will add more three nodes.
+Up to now, the cluster has just one node. In the next section we will add more three nodes.
 
 ## 4. Add the other MySQL servers to the InnoDB Cluster
 
@@ -494,7 +496,7 @@ Next section we will bootstrap a MySQL Router which will help load balance the t
 
 We are going to launch a new [MySQL Router Docker image](https://hub.docker.com/r/mysql/mysql-router) as a container:
 ```
-docker run -d --rm --name mysql-router --net=innodbnet \
+docker run -d --name mysql-router --net=innodbnet \
    -e MYSQL_HOST=mysql1 \
    -e MYSQL_PORT=3306 \
    -e MYSQL_USER=inno \
