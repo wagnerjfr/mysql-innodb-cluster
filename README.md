@@ -714,7 +714,7 @@ Don not close this terminal. We will try the cluster's fault tolerance in the ne
 
 ## 7. Fault tolerance
 
-We know from the figure of the last section that **mysql1** is the leader of the cluster.
+We know from the figure of the last section that **mysql1** is the primary of the cluster.
 
 Let's stop the container and check what will happen to the cluster.
 
@@ -722,13 +722,11 @@ Open a separate OS terminal and run:
 ```
 $ docker stop mysql1
 ```
-
 Go back to your MySQL Shell terminal and re-run:
 ```
 cluster.status()
 ```
-
-The cluster is still up and running, but we have a new "master", **mysql2**. **mysql1** is now with status `"(MISSING)"` and mode `"n/a"`.
+The cluster is still up and running, but we have a new primary, **mysql2**. The node **mysql1** is now with status `"(MISSING)"` and mode `"n/a"`.
 
 Console output:
 ```console
@@ -839,7 +837,7 @@ If you are fast enough you notice that **mysql1** will start `"RECOVERING"` in t
     "groupInformationSourceMember": "mysql2:3306"
 }
 ```
-And afer some seconds, it's back `"ONLINE"` again, but as a "slave" in `"R/O"` mode.
+And afer some seconds, **mysql1** is back `"ONLINE"` again, but as a secondary in `"R/O"` mode.
 ```console
  MySQL  mysql-router:6447 ssl  JS > cluster.status();
 {
@@ -894,9 +892,9 @@ And afer some seconds, it's back `"ONLINE"` again, but as a "slave" in `"R/O"` m
 
 Stop the running containers:
 ```
-docker stop mysql1 mysql2 mysql3 mysql4 mysql-router mysql-client
+$ docker stop mysql1 mysql2 mysql3 mysql4 mysql-router mysql-client
 ```
 Remove the stopped containers:
 ```
-docker rm mysql1 mysql2 mysql3 mysql4 mysql-router mysql-client
+$ docker rm mysql1 mysql2 mysql3 mysql4 mysql-router mysql-client
 ```
