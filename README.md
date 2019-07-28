@@ -21,9 +21,9 @@ for N in 1 2 3 4
       -e MYSQL_ROOT_PASSWORD=root mysql/mysql-server:8.0
 done
 ```
-Wait for them to be with `healthy` status
+Wait for them to be with `healthy` status.
 
-It's possible to be checked running `docker ps -a`
+It's possible to be checked running `docker ps -a`:
 ```console
 CONTAINER ID        IMAGE                    COMMAND                  CREATED              STATUS                        PORTS                 NAMES
 c5629922be3b        mysql/mysql-server:8.0   "/entrypoint.sh mysq…"   About a minute ago   Up About a minute (healthy)   3306/tcp, 33060/tcp   mysql4
@@ -710,7 +710,7 @@ cluster.status()
 ```
 ![alt text](https://github.com/wagnerjfr/mysql-innodb-cluster/blob/master/img/figure1.png)
 
-Don not close this terminal. We will try the cluster's fault tolerance in the next section.
+Do not close this terminal. We will try the cluster's fault tolerance in the next section.
 
 ## 7. Fault tolerance
 
