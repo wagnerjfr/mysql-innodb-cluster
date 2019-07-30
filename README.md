@@ -312,7 +312,7 @@ Output:
 }
 ```
 
-See its description, run `cluster.describe()`:
+See its description, by running `cluster.describe()`:
 
 Output:
 ```console
