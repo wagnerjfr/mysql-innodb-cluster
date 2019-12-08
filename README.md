@@ -14,7 +14,7 @@ The following tutorial steps will lead us to have a final result like this:
 #### Create a Docker network
 `$ docker network create innodbnet`
 
-#### Launch 4 MySQL 8 containers
+#### Launch four MySQL 8 containers
 ```
 for N in 1 2 3 4
   do docker run -d --name=mysql$N --hostname=mysql$N --net=innodbnet \
