@@ -50,7 +50,7 @@ do docker exec -it mysql$N mysql -uinno -pinno \
   -e "SELECT user FROM mysql.user where user = 'inno';"
 done
 ```
-This output is expected:
+This is the output expected:
 ```console
 mysql: [Warning] Using a password on the command line interface can be insecure.
 +---------------+--------+
