@@ -888,13 +888,20 @@ And afer some seconds, **mysql1** is back `"ONLINE"` again, but as a secondary i
 }
 ```
 
-## 8. Clean up
+## 8. Cleanning up
 
-Stop the running containers:
+To stop and remove the running containers:
+```
+$ docker rm -f mysql1 mysql2 mysql3 mysql4 mysql-router mysql-client
+```
+
+**Or:**
+
+To stop the running containers:
 ```
 $ docker stop mysql1 mysql2 mysql3 mysql4 mysql-router mysql-client
 ```
-Remove the stopped containers:
+To remove the stopped containers:
 ```
 $ docker rm mysql1 mysql2 mysql3 mysql4 mysql-router mysql-client
 ```
