@@ -599,7 +599,7 @@ Pay attention to the information below. It will be used in the next section:
 
 ## 6. Add some data and check the replication
 
-First create a new MySQL 8 container named **mysql-client** which will server as a client:
+First create a new MySQL 8 container named **mysql-client** which will be used as a client:
 ```
 $ docker run -d --name=mysql-client --hostname=mysql-client --net=innodbnet \
    -e MYSQL_ROOT_PASSWORD=root mysql/mysql-server:8.0
@@ -700,11 +700,11 @@ Let's connect again to the MySQL Shell through our client container using the ro
 ```
 $ docker exec -it mysql-client mysqlsh -h mysql-router -P 6447 -uinno -pinno
 ```
-Get the cluster we create before:
+Now we get the cluster created before:
 ```
 var cluster = dba.getCluster("mycluster")
 ```
-Then, call the describe function:
+Then, call the below function:
 ```
 cluster.status()
 ```
