@@ -3,7 +3,7 @@ Setting up [MySQL InnoDB Cluster](https://dev.mysql.com/doc/refman/8.0/en/mysql-
 
 **MySQL InnoDB cluster** provides a complete high availability solution for MySQL. Each MySQL server instance runs [MySQL Group Replication](https://dev.mysql.com/doc/refman/8.0/en/group-replication.html), which provides the mechanism to replicate data within InnoDB clusters, with built-in failover.
 
-***P.S.** Take a look at this [tutorial](https://github.com/wagnerjfr/mysql-group-replication-docker) and check how to setup MySQL Group Replication with Docker containers.*
+***P.S.** Take a look at this [tutorial](https://medium.com/@wagner.franchin/setting-up-mysql-group-replication-with-mysql-docker-images-f5eedd44fa2b) and check how to setup MySQL Group Replication with Docker containers.*
 
 The following tutorial steps will lead us to have a final result like this:
 
